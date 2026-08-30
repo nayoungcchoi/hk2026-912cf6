@@ -388,6 +388,15 @@ body{
 .mwho{flex:none;width:18px;height:18px;border-radius:50%;font-family:'Round','Pixel',sans-serif;font-size:10px;display:flex;align-items:center;justify-content:center}
 .mwho.mj{background:var(--mint-pale);color:#2E7E74}
 .mwho.ny{background:var(--pk-pale);color:var(--pk-dark)}
+.mcats{display:flex;gap:6px;margin-bottom:8px}
+.mco{flex:1;border:none;background:#fff;border-radius:12px;padding:8px 0 7px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;box-shadow:0 2px 0 #F3C8DF;color:#C98BAB;font-family:'Round','Pixel',sans-serif;font-size:10px}
+.mco svg{width:16px;height:16px}
+.mco.on{color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.arow2{display:flex;gap:8px;align-items:flex-start}
+.arow2 input{flex:1;height:48px}
+.seg{display:flex;background:#fff;border-radius:14px;box-shadow:0 3px 0 #F3C8DF;overflow:hidden;height:48px;flex:none}
+.seg button{border:none;background:none;padding:0 15px;font-family:'Round','Pixel',sans-serif;font-size:12.5px;color:#C98BAB;cursor:pointer}
+.seg button.on{color:#fff}
 .mci{flex:none;width:15px;height:15px;display:flex}
 .mci svg{width:100%;height:100%}
 .mrow .mm{flex:1;font-size:13px;color:var(--ink);word-break:keep-all}
@@ -523,9 +532,11 @@ body{
   <div class="panel" style="margin-top:14px">
     <div class="ptitle"><span class="pic" data-ic="spark"></span><span class="t">쓴 돈 기록</span><span class="s">현금은 남은 현금에서 차감</span></div>
     <div class="addbox">
-      <div class="catrow" id="mCat"></div>
-      <div class="catrow" id="mKind"></div>
-      <input id="mAmt" type="number" inputmode="decimal" placeholder="금액 (HK$)">
+      <div class="mcats" id="mCat"></div>
+      <div class="arow2">
+        <input id="mAmt" type="number" inputmode="decimal" placeholder="금액 (HK$)">
+        <div class="seg" id="mKind"></div>
+      </div>
       <input id="mMemo" type="text" placeholder="한 줄 메모 (선택 · 예: 딤섬 아침)" autocomplete="off">
       <button class="glossy sm" id="mAdd" style="width:100%">기록 추가 ✦</button>
     </div>
@@ -1053,13 +1064,13 @@ let mKind='cash',mCat='food';
 const MKC={cash:'#F0559B',card:'#8E74D9'};
 const MCAT=[['food','맛집','bowl','#E24E96'],['trans','교통','nav','#2E9B8D'],['shop','쇼핑','tote','#C98A2C'],['sight','관광','flag','#8E74D9'],['etc','기타','spark','#E58A70']];
 const MCATM={};MCAT.forEach(c=>MCATM[c[0]]=c);
-$('#mCat').innerHTML=MCAT.map((c,i)=>`<button class="catopt ${i===0?'on':''}" data-c="${c[0]}" style="${i===0?`background:${c[3]};`:''}">${IC[c[2]]}${c[1]}</button>`).join('');
-$$('#mCat .catopt').forEach(b=>b.addEventListener('click',()=>{sndClick();mCat=b.dataset.c;
-$$('#mCat .catopt').forEach(x=>{const on=x.dataset.c===mCat;x.classList.toggle('on',on);x.style.background=on?MCATM[x.dataset.c][3]:''})}));
+$('#mCat').innerHTML=MCAT.map((c,i)=>`<button class="mco ${i===0?'on':''}" data-c="${c[0]}" style="${i===0?`background:${c[3]};`:''}">${IC[c[2]]}<span>${c[1]}</span></button>`).join('');
+$$('#mCat .mco').forEach(b=>b.addEventListener('click',()=>{sndClick();mCat=b.dataset.c;
+$$('#mCat .mco').forEach(x=>{const on=x.dataset.c===mCat;x.classList.toggle('on',on);x.style.background=on?MCATM[x.dataset.c][3]:''})}));
 const fmtM=n=>(Math.round(n*100)/100).toLocaleString('ko-KR');
-$('#mKind').innerHTML=[['cash','현금'],['card','카드']].map(([k,l],i)=>`<button class="catopt ${i===0?'on':''}" data-k="${k}" style="${i===0?'background:#F0559B;':''}">${l}</button>`).join('');
-$$('#mKind .catopt').forEach(b=>b.addEventListener('click',()=>{sndClick();mKind=b.dataset.k;
-$$('#mKind .catopt').forEach(x=>{const on=x.dataset.k===mKind;x.classList.toggle('on',on);x.style.background=on?MKC[x.dataset.k]:''})}));
+$('#mKind').innerHTML=[['cash','현금'],['card','카드']].map(([k,l],i)=>`<button class="${i===0?'on':''}" data-k="${k}" style="${i===0?'background:#F0559B;':''}">${l}</button>`).join('');
+$$('#mKind button').forEach(b=>b.addEventListener('click',()=>{sndClick();mKind=b.dataset.k;
+$$('#mKind button').forEach(x=>{const on=x.dataset.k===mKind;x.classList.toggle('on',on);x.style.background=on?MKC[x.dataset.k]:''})}));
 window.renderMoney=function(){
 const rate=(LS.get('fx',null)||{}).v||null;
 const cashOut=MONEY.list.filter(e=>e.c==='cash').reduce((a,e)=>a+e.a,0);
