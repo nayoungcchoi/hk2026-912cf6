@@ -392,6 +392,15 @@ body{
 .mrow .ma{flex:none;font-family:'Dot','Pixel',sans-serif;font-size:13.5px;color:var(--ink)}
 .mrow .mdel{flex:none;border:none;background:none;color:#E5C8D8;font-size:15px;cursor:pointer;padding:2px 4px}
 .mempty{text-align:center;font-size:12px;color:var(--ink-soft);padding:18px 0 6px}
+.mchart{display:flex;align-items:flex-end;gap:8px;margin:14px 6px 0;height:148px}
+.mcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;cursor:pointer}
+.mcv{font-family:'Dot','Pixel',sans-serif;font-size:9.5px;color:var(--pk-deep);margin-bottom:3px;white-space:nowrap}
+.mbar{width:72%;max-width:34px;display:flex;flex-direction:column;border-radius:9px 9px 5px 5px;overflow:hidden}
+.mseg.card{background:#CBB7EE}
+.mseg.cash{background:#F585B8}
+.mcd{font-family:'Pixel',sans-serif;font-size:9.5px;color:var(--ink-soft);margin-top:5px;white-space:nowrap}
+.mlegend{display:flex;gap:14px;justify-content:center;margin-top:9px;font-size:10.5px;color:var(--ink-soft)}
+.mlegend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .ownc{display:flex;align-items:center;gap:10px;background:#fff;border-radius:16px;box-shadow:0 4px 0 #F3C8DF;padding:11px 14px;margin-bottom:10px}
 .ownc .ol{font-family:'Pixel',sans-serif;font-size:12px;color:#D9A0BE;flex:1}
 .ownc .ov{font-weight:700;font-size:14.5px;color:var(--ink)}
@@ -503,6 +512,7 @@ body{
       <div class="cc"><span class="ck">남은 현금</span><span class="cv" id="mLeft">HK$ 0</span><span class="ckr" id="mLeftK"></span></div>
     </div>
     <div class="msum"><span>여행 총 지출</span><b id="mTot">HK$ 0</b><span id="mTotK"></span></div>
+    <div id="mchart"></div>
   </div>
 
   <div class="panel" style="margin-top:14px">
@@ -1050,6 +1060,22 @@ $('#mLeft').style.color=left<0?'#C55':'';
 $('#mLeftK').textContent=MONEY.ex?(rate?'≈ ₩'+Math.round(left*rate).toLocaleString():''):'✎로 환전액 입력';
 $('#mTot').textContent='HK$ '+fmtM(tot);
 $('#mTotK').textContent=rate&&tot?'≈ ₩'+Math.round(tot*rate).toLocaleString():'';
+const byday={};
+MONEY.list.forEach(e=>{const d=new Date(e.t);const k=(d.getMonth()+1)+'/'+d.getDate();
+const o=byday[k]=byday[k]||{t:new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime(),cash:0,card:0};
+o[e.c==='cash'?'cash':'card']+=e.a});
+const dkeys=Object.keys(byday).sort((a,b)=>byday[a].t-byday[b].t);
+let accC=0,accD=0;
+const cols=dkeys.map(k=>{accC+=byday[k].cash;accD+=byday[k].card;return{k,cash:accC,card:accD}}).slice(-8);
+if(cols.length>1||(cols.length===1&&MONEY.list.length>1)||cols.length===1){
+const mx=cols[cols.length-1].cash+cols[cols.length-1].card||1;
+$('#mchart').innerHTML='<div class="mchart">'+cols.map((c,i)=>{
+const hc=c.cash?Math.max(3,Math.round(c.cash/mx*112)):0,hd=c.card?Math.max(3,Math.round(c.card/mx*112)):0;
+return `<div class="mcol" data-i="${i}"><span class="mcv">${fmtM(c.cash+c.card)}</span><div class="mbar">${hd?`<div class="mseg card" style="height:${hd}px"></div>`:''}${hc?`<div class="mseg cash" style="height:${hc}px"></div>`:''}</div><span class="mcd">${c.k}</span></div>`}).join('')
++'</div><div class="mlegend"><span><i style="background:#F585B8"></i>현금</span><span><i style="background:#CBB7EE"></i>카드</span></div>';
+$$('#mchart .mcol').forEach(el=>el.addEventListener('click',()=>{sndClick();const c=cols[+el.dataset.i];
+toast(c.k+'까지 · 현금 HK$'+fmtM(c.cash)+' · 카드 HK$'+fmtM(c.card))}))}
+else $('#mchart').innerHTML='';
 $('#mlist').innerHTML=MONEY.list.length?[...MONEY.list].sort((a,b)=>b.t-a.t).map(e=>{
 const d=new Date(e.t),dl=(d.getMonth()+1)+'/'+d.getDate();
 return `<div class="mrow"><span class="md">${dl}</span><span class="mm">${(e.m||'').replace(/</g,'&lt;')||(e.c==='cash'?'현금 지출':'결제')}</span><span class="mk ${e.c}">${e.c==='cash'?'현금':'카드'}</span><span class="ma">-${fmtM(e.a)}</span><button class="mdel" data-id="${e.id}">✕</button></div>`}).join('')
